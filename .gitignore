@@ -1,0 +1,21 @@
+# ROS 2 Workspace Artifacts
+build/
+install/
+log/
+.colcon/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+.venv
+
+# IDE / Editor & OS files
+.DS_Store
+.vscode/
+.idea/
+*~
+*.swp
+*.bak
