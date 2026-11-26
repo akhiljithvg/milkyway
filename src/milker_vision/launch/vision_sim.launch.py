@@ -71,26 +71,51 @@ def generate_launch_description():
         output='screen',
     )
 
-    # 4. Bridge Gazebo PointCloud2 to ROS 2
+    # 4. Bridge Gazebo PointClouds, JointStates, and Arm Joint Commands
     gz_ros_bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
         name='ros_gz_bridge',
         arguments=[
-            '/camera/depth/points@sensor_msgs/msg/PointCloud2[gz.msgs.PointCloudPacked',
+            '/overhead_camera/depth/points@sensor_msgs/msg/PointCloud2[gz.msgs.PointCloudPacked',
+            '/ee_camera/depth/points@sensor_msgs/msg/PointCloud2[gz.msgs.PointCloudPacked',
+            '/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model',
+            '/arm/base_to_part_2/cmd_pos@std_msgs/msg/Float64]gz.msgs.Double',
+            '/arm/part_2_to_part_3/cmd_pos@std_msgs/msg/Float64]gz.msgs.Double',
+            '/arm/part_3_to_part_4__3/cmd_pos@std_msgs/msg/Float64]gz.msgs.Double',
+            '/arm/part_4__3_to_part_4/cmd_pos@std_msgs/msg/Float64]gz.msgs.Double',
+            '/arm/part_4_to_part_4__2/cmd_pos@std_msgs/msg/Float64]gz.msgs.Double',
+            '/arm/part_4__2_to_part_5/cmd_pos@std_msgs/msg/Float64]gz.msgs.Double',
+            '/arm/part_5_to_part_2_3/cmd_pos@std_msgs/msg/Float64]gz.msgs.Double',
         ],
         output='screen',
     )
 
-    # 5. Launch custom 6-DOF Quad Teat Perception Node
-    teat_detector = Node(
+    # 5. Launch Phase 1: Overhead Cow & Imaginary Udder Detector
+    overhead_detector = Node(
         package='milker_vision',
-        executable='teat_detector.py',
-        name='teat_detector',
+        executable='overhead_detector.py',
+        name='overhead_detector',
         output='screen',
     )
 
-    # 6. Optional RViz 2 Node
+    # 6. Launch Phase 2: End-Effector Close-Range Teat Detector
+    ee_teat_detector = Node(
+        package='milker_vision',
+        executable='ee_teat_detector.py',
+        name='ee_teat_detector',
+        output='screen',
+    )
+
+    # 7. Launch Arm Controller & Sequential Cup Docking Node
+    arm_controller = Node(
+        package='milker_vision',
+        executable='arm_controller.py',
+        name='arm_controller',
+        output='screen',
+    )
+
+    # 8. Optional RViz 2 Node
     rviz_config_file = os.path.join(pkg_milker_vision, 'config', 'milker_tracking.rviz')
     rviz_node = Node(
         package='rviz2',
@@ -110,6 +135,8 @@ def generate_launch_description():
         robot_state_publisher,
         spawn_vision_rig,
         gz_ros_bridge,
-        teat_detector,
+        overhead_detector,
+        ee_teat_detector,
+        arm_controller,
         rviz_node,
     ])

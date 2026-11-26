@@ -16,9 +16,12 @@ find_package(ros_gz_sim REQUIRED)
 find_package(xacro REQUIRED)
 find_package(robot_state_publisher REQUIRED)
 
-# Install Python perception node
+# Install Python perception & control nodes
 install(PROGRAMS
   scripts/teat_detector.py
+  scripts/overhead_detector.py
+  scripts/ee_teat_detector.py
+  scripts/arm_controller.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

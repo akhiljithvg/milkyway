@@ -109,8 +109,8 @@
     <child link="part_2"/>
     <origin xyz="-0.140000 1.150000 0.700000" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
-    <limit lower="-1.00" upper="0.80" effort="100.0" velocity="1.0"/>
-    <dynamics damping="10.0" friction="5.0"/>
+    <limit lower="-1.00" upper="0.80" effort="300.0" velocity="1.0"/>
+    <dynamics damping="2.0" friction="0.5"/>
   </joint>
 
   <!-- Link: part_3 - Vertical carriage sliding inside guide frame part_2 -->
@@ -140,8 +140,8 @@
     <child link="part_3"/>
     <origin xyz="0.020285 0.000000 0.180600" rpy="0 0 0"/>
     <axis xyz="0 0 1"/>
-    <limit lower="-0.40" upper="0.30" effort="80.0" velocity="1.0"/>
-    <dynamics damping="10.0" friction="5.0"/>
+    <limit lower="-0.40" upper="0.30" effort="500.0" velocity="1.0"/>
+    <dynamics damping="2.0" friction="0.5"/>
   </joint>
 
   <!-- Link: part_4__3 - Telescoping outer tube + L-handle -->
@@ -171,8 +171,8 @@
     <child link="part_4__3"/>
     <origin xyz="0.041700 -0.116437 -0.221453" rpy="0 0 0"/>
     <axis xyz="1 0 0"/>
-    <limit lower="-0.7854" upper="0.7854" effort="50.0" velocity="2.0"/>
-    <dynamics damping="10.0" friction="5.0"/>
+    <limit lower="-0.7854" upper="0.7854" effort="200.0" velocity="2.0"/>
+    <dynamics damping="2.0" friction="0.5"/>
   </joint>
 
   <!-- Link: part_4 - Vertical telescoping rod -->
@@ -202,8 +202,8 @@
     <child link="part_4"/>
     <origin xyz="-0.005010 0.116437 -0.471007" rpy="0 0 0"/>
     <axis xyz="0 0 1"/>
-    <limit lower="-0.35" upper="0.35" effort="50.0" velocity="1.0"/>
-    <dynamics damping="10.0" friction="5.0"/>
+    <limit lower="0.05" upper="0.35" effort="300.0" velocity="1.0"/>
+    <dynamics damping="2.0" friction="0.5"/>
   </joint>
 
   <!-- Link: part_4__2 - Pivot collar / hub at bottom of shaft -->
@@ -234,8 +234,8 @@
     <!-- Default parked position at side of cow (rpy=0 0 0). Swings under cow up to +0.75 rad for docking -->
     <origin xyz="0.000000 0.000000 -0.160540" rpy="0 0 0"/>
     <axis xyz="0 0 1"/>
-    <limit lower="-3.1416" upper="3.1416" effort="30.0" velocity="2.0"/>
-    <dynamics damping="10.0" friction="5.0"/>
+    <limit lower="-3.1416" upper="3.1416" effort="100.0" velocity="2.0"/>
+    <dynamics damping="2.0" friction="0.5"/>
   </joint>
 
   <!-- Link: part_5 - Horizontal support bar -->
@@ -265,8 +265,8 @@
     <child link="part_5"/>
     <origin xyz="-0.034800 0.000000 0.000000" rpy="0 0 0"/>
     <axis xyz="1 0 0"/>
-    <limit lower="-1.5708" upper="1.5708" effort="40.0" velocity="2.0"/>
-    <dynamics damping="10.0" friction="5.0"/>
+    <limit lower="-1.5708" upper="1.5708" effort="200.0" velocity="2.0"/>
+    <dynamics damping="2.0" friction="0.5"/>
   </joint>
 
   <!-- Link: part_2_3 - 4-cup milker cluster -->
@@ -297,7 +297,7 @@
     <origin xyz="0.042296 0.492796 0.009400" rpy="0 0 0"/>
     <axis xyz="0 0 1"/>
     <limit lower="-1.5708" upper="1.5708" effort="20.0" velocity="2.0"/>
-    <dynamics damping="10.0" friction="5.0"/>
+    <dynamics damping="2.0" friction="0.5"/>
   </joint>
 
   <!-- ======================================================== -->
@@ -501,37 +501,10 @@
   <xacro:anatomical_teat prefix="teat_rr" parent="quarter_rr" x="0.0" y="0.0" z="-0.105" roll="0.04" length="0.048" radius="0.011"/>
 
   <!-- ======================================================== -->
-  <!-- 7. STATIC RGB-D CAMERA RIG & SENSOR                      -->
-  <!-- Ground stand at Z=0.28m, pitched up (-0.25 rad)          -->
+  <!-- 7A. OVERHEAD RGB-D CAMERA (COARSE COW & UDDER TRACKING)  -->
+  <!-- Mounted directly above cow spine at Z=2.30m looking down -->
   <!-- ======================================================== -->
-  <link name="camera_mount">
-    <visual>
-      <origin xyz="0 0 0.14" rpy="0 0 0"/>
-      <geometry>
-        <cylinder radius="0.02" length="0.28"/>
-      </geometry>
-      <material name="stand_metal"/>
-    </visual>
-    <collision>
-      <origin xyz="0 0 0.14" rpy="0 0 0"/>
-      <geometry>
-        <cylinder radius="0.02" length="0.28"/>
-      </geometry>
-    </collision>
-    <inertial>
-      <mass value="1.0"/>
-      <origin xyz="0 0 0.14"/>
-      <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.001"/>
-    </inertial>
-  </link>
-
-  <joint name="world_to_mount" type="fixed">
-    <parent link="world"/>
-    <child link="camera_mount"/>
-    <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
-  </joint>
-
-  <link name="camera_link">
+  <link name="overhead_camera_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
@@ -552,57 +525,56 @@
     </inertial>
   </link>
 
-  <joint name="mount_to_camera" type="fixed">
-    <parent link="camera_mount"/>
-    <child link="camera_link"/>
-    <origin xyz="0.0 0.0 0.28" rpy="0 -0.25 0"/>
+  <joint name="world_to_overhead_camera" type="fixed">
+    <parent link="world"/>
+    <child link="overhead_camera_link"/>
+    <!-- Directly above cow's back, pitched +90 deg so +X optical axis points straight down (-Z world) -->
+    <origin xyz="0.35 0.0 2.30" rpy="0 1.57079632679 0"/>
   </joint>
 
-  <!-- Standard ROS Optical Frame -->
-  <link name="camera_depth_optical_frame"/>
-  <joint name="camera_to_optical" type="fixed">
-    <parent link="camera_link"/>
-    <child link="camera_depth_optical_frame"/>
+  <link name="overhead_camera_depth_optical_frame"/>
+  <joint name="overhead_camera_to_optical" type="fixed">
+    <parent link="overhead_camera_link"/>
+    <child link="overhead_camera_depth_optical_frame"/>
+    <origin xyz="0 0 0" rpy="-1.57079632679 0 -1.57079632679"/>
+  </joint>
+
+  <!-- ======================================================== -->
+  <!-- 7C. END-EFFECTOR RGB-D CAMERA (CLOSE-RANGE TEAT TRACKING)-->
+  <!-- Mounted on 4-cup milker cluster (part_2_3), looking UP   -->
+  <!-- ======================================================== -->
+  <link name="ee_camera_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.020 0.060 0.020"/>
+      </geometry>
+      <material name="d435_gray"/>
+    </visual>
+    <inertial>
+      <mass value="0.050"/>
+      <origin xyz="0 0 0"/>
+      <inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="1e-5"/>
+    </inertial>
+  </link>
+
+  <joint name="part_2_3_to_ee_camera" type="fixed">
+    <parent link="part_2_3"/>
+    <child link="ee_camera_link"/>
+    <!-- Mounted between the 4 cup rims at top of cluster, pitched -90 deg so +X optical axis looks straight UP (+Z) -->
+    <origin xyz="0.025 0.025 0.115" rpy="0 -1.57079632679 0"/>
+  </joint>
+
+  <link name="ee_camera_depth_optical_frame"/>
+  <joint name="ee_camera_to_optical" type="fixed">
+    <parent link="ee_camera_link"/>
+    <child link="ee_camera_depth_optical_frame"/>
     <origin xyz="0 0 0" rpy="-1.57079632679 0 -1.57079632679"/>
   </joint>
 
   <!-- ======================================================== -->
   <!-- 8. GAZEBO HARMONIC SENSOR SYSTEM & PBR MATERIALS         -->
   <!-- ======================================================== -->
-  <gazebo reference="camera_mount">
-    <material>
-      <ambient>0.30 0.32 0.36 1.0</ambient>
-      <diffuse>0.30 0.32 0.36 1.0</diffuse>
-      <specular>0.5 0.5 0.5 1.0</specular>
-    </material>
-  </gazebo>
-
-  <gazebo reference="camera_link">
-    <material>
-      <ambient>0.18 0.18 0.18 1.0</ambient>
-      <diffuse>0.18 0.18 0.18 1.0</diffuse>
-      <specular>0.4 0.4 0.4 1.0</specular>
-    </material>
-    <sensor name="rgbd_camera" type="rgbd_camera">
-      <camera>
-        <horizontal_fov>1.047</horizontal_fov>
-        <image>
-          <width>640</width>
-          <height>480</height>
-        </image>
-        <clip>
-          <near>0.1</near>
-          <far>5.0</far>
-        </clip>
-      </camera>
-      <always_on>1</always_on>
-      <update_rate>30</update_rate>
-      <visualize>true</visualize>
-      <topic>/camera/depth</topic>
-      <gz_frame_id>camera_link</gz_frame_id>
-    </sensor>
-  </gazebo>
-
   <gazebo reference="model_cow_copy_1___assembly_4__1___configuration_default">
     <material>
       <ambient>0.96 0.94 0.92 1.0</ambient>
@@ -675,10 +647,134 @@
     </material>
   </gazebo>
 
+  <!-- Overhead RGB-D Camera Sensor -->
+  <gazebo reference="overhead_camera_link">
+    <material>
+      <ambient>0.18 0.18 0.18 1.0</ambient>
+      <diffuse>0.18 0.18 0.18 1.0</diffuse>
+      <specular>0.4 0.4 0.4 1.0</specular>
+    </material>
+    <sensor name="overhead_rgbd_camera" type="rgbd_camera">
+      <camera>
+        <horizontal_fov>1.047</horizontal_fov>
+        <image>
+          <width>640</width>
+          <height>480</height>
+        </image>
+        <clip>
+          <near>0.2</near>
+          <far>4.0</far>
+        </clip>
+      </camera>
+      <always_on>1</always_on>
+      <update_rate>15</update_rate>
+      <visualize>true</visualize>
+      <topic>/overhead_camera/depth</topic>
+      <gz_frame_id>overhead_camera_link</gz_frame_id>
+    </sensor>
+  </gazebo>
+
+  <!-- End-Effector Close-Range RGB-D Camera Sensor -->
+  <gazebo reference="ee_camera_link">
+    <material>
+      <ambient>0.18 0.18 0.18 1.0</ambient>
+      <diffuse>0.18 0.18 0.18 1.0</diffuse>
+      <specular>0.4 0.4 0.4 1.0</specular>
+    </material>
+    <sensor name="ee_rgbd_camera" type="rgbd_camera">
+      <camera>
+        <horizontal_fov>2.35</horizontal_fov>
+        <image>
+          <width>320</width>
+          <height>320</height>
+        </image>
+        <clip>
+          <near>0.01</near>
+          <far>0.40</far>
+        </clip>
+      </camera>
+      <always_on>1</always_on>
+      <update_rate>20</update_rate>
+      <visualize>true</visualize>
+      <topic>/ee_camera/depth</topic>
+      <gz_frame_id>ee_camera_link</gz_frame_id>
+    </sensor>
+  </gazebo>
+
   <!-- Gazebo Sensors System Plugin (OGRE 2 Engine) -->
   <gazebo>
     <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
       <render_engine>ogre2</render_engine>
+    </plugin>
+
+    <!-- Joint State Publisher for TF2 / robot_state_publisher -->
+    <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
+      <topic>/joint_states</topic>
+      <joint_name>base_to_part_2</joint_name>
+      <joint_name>part_2_to_part_3</joint_name>
+      <joint_name>part_3_to_part_4__3</joint_name>
+      <joint_name>part_4__3_to_part_4</joint_name>
+      <joint_name>part_4_to_part_4__2</joint_name>
+      <joint_name>part_4__2_to_part_5</joint_name>
+      <joint_name>part_5_to_part_2_3</joint_name>
+    </plugin>
+
+    <!-- Joint Position Controllers for 7-DOF Milking Arm -->
+    <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+      <joint_name>base_to_part_2</joint_name>
+      <topic>/arm/base_to_part_2/cmd_pos</topic>
+      <p_gain>1000.0</p_gain>
+      <i_gain>50.0</i_gain>
+      <d_gain>80.0</d_gain>
+      <initial_position>0.0</initial_position>
+    </plugin>
+    <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+      <joint_name>part_2_to_part_3</joint_name>
+      <topic>/arm/part_2_to_part_3/cmd_pos</topic>
+      <p_gain>2500.0</p_gain>
+      <i_gain>200.0</i_gain>
+      <d_gain>150.0</d_gain>
+      <initial_position>0.0</initial_position>
+    </plugin>
+    <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+      <joint_name>part_3_to_part_4__3</joint_name>
+      <topic>/arm/part_3_to_part_4__3/cmd_pos</topic>
+      <p_gain>800.0</p_gain>
+      <i_gain>40.0</i_gain>
+      <d_gain>50.0</d_gain>
+      <initial_position>0.0</initial_position>
+    </plugin>
+    <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+      <joint_name>part_4__3_to_part_4</joint_name>
+      <topic>/arm/part_4__3_to_part_4/cmd_pos</topic>
+      <p_gain>2000.0</p_gain>
+      <i_gain>150.0</i_gain>
+      <d_gain>100.0</d_gain>
+      <initial_position>0.15</initial_position>
+    </plugin>
+    <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+      <joint_name>part_4_to_part_4__2</joint_name>
+      <topic>/arm/part_4_to_part_4__2/cmd_pos</topic>
+      <p_gain>400.0</p_gain>
+      <i_gain>20.0</i_gain>
+      <d_gain>35.0</d_gain>
+      <initial_position>0.0</initial_position>
+    </plugin>
+    <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+      <joint_name>part_4__2_to_part_5</joint_name>
+      <topic>/arm/part_4__2_to_part_5/cmd_pos</topic>
+      <p_gain>1000.0</p_gain>
+      <i_gain>80.0</i_gain>
+      <d_gain>60.0</d_gain>
+      <initial_position>0.0</initial_position>
+    </plugin>
+    <plugin filename="gz-sim-joint-position-controller-system" name="gz::sim::systems::JointPositionController">
+      <joint_name>part_5_to_part_2_3</joint_name>
+      <topic>/arm/part_5_to_part_2_3/cmd_pos</topic>
+      <p_gain>120.0</p_gain>
+      <i_gain>5.0</i_gain>
+      <d_gain>12.0</d_gain>
+      <initial_position>0.0</initial_position>
     </plugin>
   </gazebo>
 
