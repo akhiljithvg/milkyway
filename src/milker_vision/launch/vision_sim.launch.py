@@ -3,7 +3,7 @@ import xacro
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
@@ -13,6 +13,17 @@ from launch_ros.actions import Node
 def generate_launch_description():
     pkg_milker_vision = get_package_share_directory('milker_vision')
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
+    share_parent_dir = os.path.dirname(pkg_milker_vision)
+
+    # Ensure Gazebo Harmonic can locate meshes referenced with package://
+    set_gz_resource_path = AppendEnvironmentVariable(
+        'GZ_SIM_RESOURCE_PATH',
+        share_parent_dir
+    )
+    set_ign_resource_path = AppendEnvironmentVariable(
+        'IGN_GAZEBO_RESOURCE_PATH',
+        share_parent_dir
+    )
 
     # Launch Arguments
     gz_args_arg = DeclareLaunchArgument(
@@ -91,6 +102,8 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        set_gz_resource_path,
+        set_ign_resource_path,
         gz_args_arg,
         rviz_arg,
         gz_sim,

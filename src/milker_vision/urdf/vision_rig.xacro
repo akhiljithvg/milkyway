@@ -2,13 +2,13 @@
 <robot name="vision_rig" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
   <!-- ======================================================== -->
-  <!-- 1. REALISTIC MATERIALS                                   -->
+  <!-- 1. REALISTIC MATERIALS FOR RVIZ & SIMULATION             -->
   <!-- ======================================================== -->
+  <material name="holstein_white">
+    <color rgba="0.96 0.94 0.92 1.0"/>
+  </material>
   <material name="holstein_black">
     <color rgba="0.08 0.08 0.08 1.0"/>
-  </material>
-  <material name="holstein_white">
-    <color rgba="0.95 0.95 0.95 1.0"/>
   </material>
   <material name="udder_skin">
     <!-- Natural bovine udder peach/pink epidermal tone -->
@@ -20,13 +20,25 @@
   </material>
   <material name="streak_canal_dark">
     <!-- Sphincter / teat orifice indicator -->
-    <color rgba="0.72 0.36 0.40 1.0"/>
+    <color rgba="0.66 0.30 0.35 1.0"/>
   </material>
   <material name="stand_metal">
-    <color rgba="0.35 0.35 0.40 1.0"/>
+    <color rgba="0.30 0.32 0.36 1.0"/>
   </material>
   <material name="d435_gray">
-    <color rgba="0.20 0.20 0.20 1.0"/>
+    <color rgba="0.18 0.18 0.18 1.0"/>
+  </material>
+  <material name="robot_blue">
+    <color rgba="0.22 0.48 0.75 1.0"/>
+  </material>
+  <material name="robot_light_blue">
+    <color rgba="0.30 0.58 0.85 1.0"/>
+  </material>
+  <material name="robot_metallic">
+    <color rgba="0.65 0.67 0.70 1.0"/>
+  </material>
+  <material name="milker_cluster_dark">
+    <color rgba="0.20 0.22 0.25 1.0"/>
   </material>
 
   <!-- ======================================================== -->
@@ -35,8 +47,462 @@
   <link name="world"/>
 
   <!-- ======================================================== -->
-  <!-- 3. CAMERA RIG & INTEL REALSENSE D435 SENSOR              -->
-  <!-- Placed at Z=0.28m, pitched up (-0.25 rad) for full FOV   -->
+  <!-- 3. REALISTIC COW BODY (CAD MESH FROM ONSHAPE)            -->
+  <!-- Positioned so hooves stand at Z=0 and belly is at Z=0.5m -->
+  <!-- ======================================================== -->
+  <link name="model_cow_copy_1___assembly_4__1___configuration_default">
+    <inertial>
+      <origin xyz="-0.491278 1.386465 0.646086" rpy="0 0 0"/>
+      <mass value="500.8764"/>
+      <inertia ixx="409.937471" ixy="0" ixz="0" iyy="122.786528" iyz="0" izz="320.498536"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://milker_vision/urdf/assets/model_cow_copy_1___assembly_4__1___configuration_default.stl"/>
+      </geometry>
+      <material name="holstein_white"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://milker_vision/urdf/assets/model_cow_copy_1___assembly_4__1___configuration_default.stl"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="world_to_cow" type="fixed">
+    <parent link="world"/>
+    <child link="model_cow_copy_1___assembly_4__1___configuration_default"/>
+    <!-- Aligns cow longitudinally: head at -X, tail at +X, belly/udder at (0.50, 0, 0.50) -->
+    <origin xyz="-1.050000 -0.491278 0.315200" rpy="0 0 -1.57079632679"/>
+  </joint>
+
+  <!-- ======================================================== -->
+  <!-- 4. ROBOTIC MILKING ARM & 4-CUP CLUSTER MECHANISM         -->
+  <!-- ======================================================== -->
+
+  <!-- Link: part_2 - Slotted rectangular milker guide frame -->
+  <link name="part_2">
+    <inertial>
+      <origin xyz="0.006299 0.000000 0.000000" rpy="0 0 0"/>
+      <mass value="1.9197"/>
+      <inertia ixx="0.144591" ixy="0" ixz="0" iyy="0.128682" iyz="0" izz="0.016527"/>
+    </inertial>
+    <visual>
+      <origin xyz="-0.041010 -0.000000 -1.010284" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://milker_vision/urdf/assets/part_2.stl"/>
+      </geometry>
+      <material name="robot_blue"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.041010 -0.000000 -1.010284" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://milker_vision/urdf/assets/part_2.stl"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="base_to_part_2" type="prismatic">
+    <parent link="model_cow_copy_1___assembly_4__1___configuration_default"/>
+    <child link="part_2"/>
+    <origin xyz="-0.140000 1.150000 0.700000" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.00" upper="0.80" effort="100.0" velocity="1.0"/>
+    <dynamics damping="10.0" friction="5.0"/>
+  </joint>
+
+  <!-- Link: part_3 - Vertical carriage sliding inside guide frame part_2 -->
+  <link name="part_3">
+    <inertial>
+      <origin xyz="0.004476 -0.000000 -0.149337" rpy="0 0 0"/>
+      <mass value="0.3835"/>
+      <inertia ixx="0.016328" ixy="0" ixz="0" iyy="0.015992" iyz="0" izz="0.000443"/>
+    </inertial>
+    <visual>
+      <origin xyz="-0.061295 -0.000000 -1.190884" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://milker_vision/urdf/assets/part_3.stl"/>
+      </geometry>
+      <material name="robot_light_blue"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.061295 -0.000000 -1.190884" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://milker_vision/urdf/assets/part_3.stl"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="part_2_to_part_3" type="prismatic">
+    <parent link="part_2"/>
+    <child link="part_3"/>
+    <origin xyz="0.020285 0.000000 0.180600" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-0.40" upper="0.30" effort="80.0" velocity="1.0"/>
+    <dynamics damping="10.0" friction="5.0"/>
+  </joint>
+
+  <!-- Link: part_4__3 - Telescoping outer tube + L-handle -->
+  <link name="part_4__3">
+    <inertial>
+      <origin xyz="-0.004857 0.097639 0.031535" rpy="0 0 0"/>
+      <mass value="1.1068"/>
+      <inertia ixx="0.037463" ixy="0" ixz="0" iyy="0.030125" iyz="0" izz="0.007669"/>
+    </inertial>
+    <visual>
+      <origin xyz="-0.102995 0.116437 -0.969431" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://milker_vision/urdf/assets/part_4__3.stl"/>
+      </geometry>
+      <material name="robot_light_blue"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.102995 0.116437 -0.969431" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://milker_vision/urdf/assets/part_4__3.stl"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="part_3_to_part_4__3" type="revolute">
+    <parent link="part_3"/>
+    <child link="part_4__3"/>
+    <origin xyz="0.041700 -0.116437 -0.221453" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-0.7854" upper="0.7854" effort="50.0" velocity="2.0"/>
+    <dynamics damping="10.0" friction="5.0"/>
+  </joint>
+
+  <!-- Link: part_4 - Vertical telescoping rod -->
+  <link name="part_4">
+    <inertial>
+      <origin xyz="-0.000000 -0.000000 0.000000" rpy="0 0 0"/>
+      <mass value="1.7850"/>
+      <inertia ixx="0.020685" ixy="0" ixz="0" iyy="0.020685" iyz="0" izz="0.000183"/>
+    </inertial>
+    <visual>
+      <origin xyz="-0.097985 -0.000000 -0.498424" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://milker_vision/urdf/assets/part_4.stl"/>
+      </geometry>
+      <material name="robot_metallic"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.097985 -0.000000 -0.498424" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://milker_vision/urdf/assets/part_4.stl"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="part_4__3_to_part_4" type="prismatic">
+    <parent link="part_4__3"/>
+    <child link="part_4"/>
+    <origin xyz="-0.005010 0.116437 -0.471007" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-0.35" upper="0.35" effort="50.0" velocity="1.0"/>
+    <dynamics damping="10.0" friction="5.0"/>
+  </joint>
+
+  <!-- Link: part_4__2 - Pivot collar / hub at bottom of shaft -->
+  <link name="part_4__2">
+    <inertial>
+      <origin xyz="-0.017400 0.000000 0.000000" rpy="0 0 0"/>
+      <mass value="0.1641"/>
+      <inertia ixx="0.000071" ixy="0" ixz="0" iyy="0.000102" iyz="0" izz="0.000102"/>
+    </inertial>
+    <visual>
+      <origin xyz="-0.097985 -0.000000 -0.337884" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://milker_vision/urdf/assets/part_4__2.stl"/>
+      </geometry>
+      <material name="stand_metal"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.097985 -0.000000 -0.337884" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://milker_vision/urdf/assets/part_4__2.stl"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="part_4_to_part_4__2" type="revolute">
+    <parent link="part_4"/>
+    <child link="part_4__2"/>
+    <!-- Default parked position at side of cow (rpy=0 0 0). Swings under cow up to +0.75 rad for docking -->
+    <origin xyz="0.000000 0.000000 -0.160540" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-3.1416" upper="3.1416" effort="30.0" velocity="2.0"/>
+    <dynamics damping="10.0" friction="5.0"/>
+  </joint>
+
+  <!-- Link: part_5 - Horizontal support bar -->
+  <link name="part_5">
+    <inertial>
+      <origin xyz="0.000000 0.194000 0.000000" rpy="0 0 0"/>
+      <mass value="2.5857"/>
+      <inertia ixx="0.062733" ixy="0" ixz="0" iyy="0.000265" iyz="0" izz="0.062733"/>
+    </inertial>
+    <visual>
+      <origin xyz="-0.063185 0.000000 -0.337884" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://milker_vision/urdf/assets/part_5.stl"/>
+      </geometry>
+      <material name="robot_metallic"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.063185 0.000000 -0.337884" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://milker_vision/urdf/assets/part_5.stl"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="part_4__2_to_part_5" type="revolute">
+    <parent link="part_4__2"/>
+    <child link="part_5"/>
+    <origin xyz="-0.034800 0.000000 0.000000" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-1.5708" upper="1.5708" effort="40.0" velocity="2.0"/>
+    <dynamics damping="10.0" friction="5.0"/>
+  </joint>
+
+  <!-- Link: part_2_3 - 4-cup milker cluster -->
+  <link name="part_2_3">
+    <inertial>
+      <origin xyz="0.024165 0.025264 0.018653" rpy="0 0 0"/>
+      <mass value="2.5924"/>
+      <inertia ixx="0.041915" ixy="0" ixz="0" iyy="0.041914" iyz="0" izz="0.058942"/>
+    </inertial>
+    <visual>
+      <origin xyz="-0.105481 -0.492796 -0.347284" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://milker_vision/urdf/assets/part_2_3.stl"/>
+      </geometry>
+      <material name="milker_cluster_dark"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.105481 -0.492796 -0.347284" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://milker_vision/urdf/assets/part_2_3.stl"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="part_5_to_part_2_3" type="revolute">
+    <parent link="part_5"/>
+    <child link="part_2_3"/>
+    <origin xyz="0.042296 0.492796 0.009400" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-1.5708" upper="1.5708" effort="20.0" velocity="2.0"/>
+    <dynamics damping="10.0" friction="5.0"/>
+  </joint>
+
+  <!-- ======================================================== -->
+  <!-- 5. REALISTIC ANATOMICAL BOVINE UDDER MODEL               -->
+  <!-- Smooth abdominal blend + median groove + 4 quarters     -->
+  <!-- ======================================================== -->
+
+  <!-- Udder Base & Suspensory Attachment to Cow Abdomen -->
+  <link name="udder_base_link">
+    <!-- Main glandular body foundation -->
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.42 0.32 0.06"/>
+      </geometry>
+      <material name="udder_skin"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.42 0.32 0.06"/>
+      </geometry>
+    </collision>
+
+    <!-- Anterior Fore-Udder Abdominal Suspension Blend (Smooth Slope) -->
+    <visual>
+      <origin xyz="-0.16 0 0.02" rpy="0 0.22 0"/>
+      <geometry>
+        <box size="0.18 0.28 0.05"/>
+      </geometry>
+      <material name="udder_skin"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.16 0 0.02" rpy="0 0.22 0"/>
+      <geometry>
+        <box size="0.18 0.28 0.05"/>
+      </geometry>
+    </collision>
+
+    <!-- Posterior Rear-Udder Pelvic Suspension Blend (High Escutcheon Arch) -->
+    <visual>
+      <origin xyz="0.16 0 0.02" rpy="0 -0.20 0"/>
+      <geometry>
+        <box size="0.16 0.26 0.05"/>
+      </geometry>
+      <material name="udder_skin"/>
+    </visual>
+    <collision>
+      <origin xyz="0.16 0 0.02" rpy="0 -0.20 0"/>
+      <geometry>
+        <box size="0.16 0.26 0.05"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <mass value="4.0"/>
+      <origin xyz="0 0 0"/>
+      <inertia ixx="0.04" ixy="0" ixz="0" iyy="0.06" iyz="0" izz="0.08"/>
+    </inertial>
+  </link>
+
+  <joint name="cow_to_udder_base" type="fixed">
+    <parent link="model_cow_copy_1___assembly_4__1___configuration_default"/>
+    <child link="udder_base_link"/>
+    <!-- Positioned directly at ventral abdomen, counter-rotated to align with world frame -->
+    <origin xyz="-0.491278 1.550000 0.185000" rpy="0 0 1.57079632679"/>
+  </joint>
+
+  <!-- Macro for Glandular Quarter Lobes -->
+  <xacro:macro name="quarter_lobe" params="name x y z radius mass">
+    <link name="${name}">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <sphere radius="${radius}"/>
+        </geometry>
+        <material name="udder_skin"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <sphere radius="${radius}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="${mass}"/>
+        <origin xyz="0 0 0"/>
+        <inertia ixx="0.015" ixy="0" ixz="0" iyy="0.015" iyz="0" izz="0.015"/>
+      </inertial>
+    </link>
+    <joint name="${name}_joint" type="fixed">
+      <parent link="udder_base_link"/>
+      <child link="${name}"/>
+      <origin xyz="${x} ${y} ${z}" rpy="0 0 0"/>
+    </joint>
+    <gazebo reference="${name}">
+      <material>
+        <ambient>0.96 0.77 0.72 1.0</ambient>
+        <diffuse>0.96 0.77 0.72 1.0</diffuse>
+        <specular>0.15 0.15 0.15 1.0</specular>
+      </material>
+    </gazebo>
+  </xacro:macro>
+
+  <!-- Fore Quarters (42% volume, forward abdominal slope, 15cm inter-teat placement) -->
+  <xacro:quarter_lobe name="quarter_fl" x="-0.070" y="0.075" z="-0.050" radius="0.105" mass="2.2"/>
+  <xacro:quarter_lobe name="quarter_fr" x="-0.070" y="-0.075" z="-0.050" radius="0.105" mass="2.2"/>
+
+  <!-- Rear Quarters (58% volume, fuller posterior lobes, 11cm inter-teat placement) -->
+  <xacro:quarter_lobe name="quarter_rl" x="0.065" y="0.055" z="-0.040" radius="0.115" mass="2.8"/>
+  <xacro:quarter_lobe name="quarter_rr" x="0.065" y="-0.055" z="-0.040" radius="0.115" mass="2.8"/>
+
+  <!-- ======================================================== -->
+  <!-- 6. ANATOMICAL TEATS WITH SPHINCTER ORIFICE (EXACT TIP)   -->
+  <!-- Cistern Base + Barrel + Distal Dome + Streak Canal       -->
+  <!-- ======================================================== -->
+  <xacro:macro name="anatomical_teat" params="prefix parent x y z roll length radius">
+    <link name="${prefix}_link">
+      <!-- 1. Gland Cistern Base Taper (smooth anatomical transition into udder floor) -->
+      <visual>
+        <origin xyz="0 0 -0.007" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${radius * 1.30}" length="0.014"/>
+        </geometry>
+        <material name="udder_skin"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 -0.007" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${radius * 1.30}" length="0.014"/>
+        </geometry>
+      </collision>
+
+      <!-- 2. Main Teat Barrel -->
+      <visual>
+        <origin xyz="0 0 -${length / 2}" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${radius}" length="${length}"/>
+        </geometry>
+        <material name="teat_skin"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 -${length / 2}" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${radius}" length="${length}"/>
+        </geometry>
+      </collision>
+
+      <!-- 3. Anatomical Rounded Distal Tip Cap (Hemisphere Dome) -->
+      <visual>
+        <origin xyz="0 0 -${length}" rpy="0 0 0"/>
+        <geometry>
+          <sphere radius="${radius}"/>
+        </geometry>
+        <material name="teat_skin"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 -${length}" rpy="0 0 0"/>
+        <geometry>
+          <sphere radius="${radius}"/>
+        </geometry>
+      </collision>
+
+      <!-- 4. Distal Streak Canal / Papillary Orifice (Marks the EXACT tip apex) -->
+      <visual>
+        <origin xyz="0 0 -${length + radius * 0.96}" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${radius * 0.35}" length="0.002"/>
+        </geometry>
+        <material name="streak_canal_dark"/>
+      </visual>
+
+      <inertial>
+        <mass value="0.04"/>
+        <origin xyz="0 0 -${length / 2}"/>
+        <inertia ixx="1e-4" ixy="0" ixz="0" iyy="1e-4" iyz="0" izz="1e-4"/>
+      </inertial>
+    </link>
+
+    <joint name="${prefix}_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child link="${prefix}_link"/>
+      <origin xyz="${x} ${y} ${z}" rpy="0 0 ${roll}"/>
+    </joint>
+
+    <gazebo reference="${prefix}_link">
+      <material>
+        <ambient>0.90 0.54 0.58 1.0</ambient>
+        <diffuse>0.90 0.54 0.58 1.0</diffuse>
+        <specular>0.2 0.2 0.2 1.0</specular>
+      </material>
+    </gazebo>
+  </xacro:macro>
+
+  <!-- Fore Teats: length=5.5cm, radius=1.2cm (wider 15cm inter-teat placement) -->
+  <xacro:anatomical_teat prefix="teat_fl" parent="quarter_fl" x="0.0" y="0.0" z="-0.095" roll="0.08" length="0.055" radius="0.012"/>
+  <xacro:anatomical_teat prefix="teat_fr" parent="quarter_fr" x="0.0" y="0.0" z="-0.095" roll="-0.08" length="0.055" radius="0.012"/>
+
+  <!-- Rear Teats: length=4.8cm, radius=1.1cm (narrower 11cm placement) -->
+  <xacro:anatomical_teat prefix="teat_rl" parent="quarter_rl" x="0.0" y="0.0" z="-0.105" roll="-0.04" length="0.048" radius="0.011"/>
+  <xacro:anatomical_teat prefix="teat_rr" parent="quarter_rr" x="0.0" y="0.0" z="-0.105" roll="0.04" length="0.048" radius="0.011"/>
+
+  <!-- ======================================================== -->
+  <!-- 7. STATIC RGB-D CAMERA RIG & SENSOR                      -->
+  <!-- Ground stand at Z=0.28m, pitched up (-0.25 rad)          -->
   <!-- ======================================================== -->
   <link name="camera_mount">
     <visual>
@@ -101,269 +567,20 @@
   </joint>
 
   <!-- ======================================================== -->
-  <!-- 4. REALISTIC COW ABDOMEN & HINDQUARTERS (MILKING STALL)   -->
-  <!-- ======================================================== -->
-  <link name="cow_body_link">
-    <visual>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry>
-        <box size="0.75 0.46 0.18"/>
-      </geometry>
-      <material name="holstein_black"/>
-    </visual>
-    <collision>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry>
-        <box size="0.75 0.46 0.18"/>
-      </geometry>
-    </collision>
-    <inertial>
-      <mass value="45.0"/>
-      <origin xyz="0 0 0"/>
-      <inertia ixx="1.2" ixy="0" ixz="0" iyy="2.5" iyz="0" izz="3.0"/>
-    </inertial>
-  </link>
-
-  <joint name="world_to_cow_body" type="fixed">
-    <parent link="world"/>
-    <child link="cow_body_link"/>
-    <origin xyz="0.50 0.0 0.65" rpy="0 0 0"/>
-  </joint>
-
-  <!-- Bovine Left Hind Leg (Stall framing) -->
-  <link name="left_hind_leg">
-    <visual>
-      <origin xyz="0 0 -0.28" rpy="0 0 0"/>
-      <geometry>
-        <cylinder radius="0.065" length="0.56"/>
-      </geometry>
-      <material name="holstein_white"/>
-    </visual>
-    <collision>
-      <origin xyz="0 0 -0.28" rpy="0 0 0"/>
-      <geometry>
-        <cylinder radius="0.065" length="0.56"/>
-      </geometry>
-    </collision>
-    <inertial>
-      <mass value="12.0"/>
-      <origin xyz="0 0 -0.28"/>
-      <inertia ixx="0.35" ixy="0" ixz="0" iyy="0.35" iyz="0" izz="0.06"/>
-    </inertial>
-  </link>
-  <joint name="cow_to_left_leg" type="fixed">
-    <parent link="cow_body_link"/>
-    <child link="left_hind_leg"/>
-    <origin xyz="0.10 0.23 0.0" rpy="0 0 0"/>
-  </joint>
-
-  <!-- Bovine Right Hind Leg (Stall framing) -->
-  <link name="right_hind_leg">
-    <visual>
-      <origin xyz="0 0 -0.28" rpy="0 0 0"/>
-      <geometry>
-        <cylinder radius="0.065" length="0.56"/>
-      </geometry>
-      <material name="holstein_white"/>
-    </visual>
-    <collision>
-      <origin xyz="0 0 -0.28" rpy="0 0 0"/>
-      <geometry>
-        <cylinder radius="0.065" length="0.56"/>
-      </geometry>
-    </collision>
-    <inertial>
-      <mass value="12.0"/>
-      <origin xyz="0 0 -0.28"/>
-      <inertia ixx="0.35" ixy="0" ixz="0" iyy="0.35" iyz="0" izz="0.06"/>
-    </inertial>
-  </link>
-  <joint name="cow_to_right_leg" type="fixed">
-    <parent link="cow_body_link"/>
-    <child link="right_hind_leg"/>
-    <origin xyz="0.10 -0.23 0.0" rpy="0 0 0"/>
-  </joint>
-
-  <!-- ======================================================== -->
-  <!-- 5. UDDER SUSPENSORY BASE (FORE/REAR ATTACHMENT BLEND)    -->
-  <!-- ======================================================== -->
-  <link name="udder_base_link">
-    <visual>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry>
-        <box size="0.44 0.34 0.06"/>
-      </geometry>
-      <material name="udder_skin"/>
-    </visual>
-    <collision>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry>
-        <box size="0.44 0.34 0.06"/>
-      </geometry>
-    </collision>
-    <inertial>
-      <mass value="3.5"/>
-      <origin xyz="0 0 0"/>
-      <inertia ixx="0.04" ixy="0" ixz="0" iyy="0.06" iyz="0" izz="0.08"/>
-    </inertial>
-  </link>
-  <joint name="cow_to_udder_base" type="fixed">
-    <parent link="cow_body_link"/>
-    <child link="udder_base_link"/>
-    <origin xyz="0.0 0.0 -0.11" rpy="0 0 0"/>
-  </joint>
-
-  <!-- ======================================================== -->
-  <!-- 6. THE 4 GLANDULAR QUARTERS (ANATOMICAL LOBES & CLEFT)   -->
-  <!-- Left and Right quarters separated by Median Suspensory   -->
-  <!-- ======================================================== -->
-  <xacro:macro name="quarter_lobe" params="name x y z radius mass">
-    <link name="${name}">
-      <visual>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-        <geometry>
-          <sphere radius="${radius}"/>
-        </geometry>
-        <material name="udder_skin"/>
-      </visual>
-      <collision>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-        <geometry>
-          <sphere radius="${radius}"/>
-        </geometry>
-      </collision>
-      <inertial>
-        <mass value="${mass}"/>
-        <origin xyz="0 0 0"/>
-        <inertia ixx="0.015" ixy="0" ixz="0" iyy="0.015" iyz="0" izz="0.015"/>
-      </inertial>
-    </link>
-    <joint name="${name}_joint" type="fixed">
-      <parent link="udder_base_link"/>
-      <child link="${name}"/>
-      <origin xyz="${x} ${y} ${z}" rpy="0 0 0"/>
-    </joint>
-    <gazebo reference="${name}">
-      <material>
-        <ambient>0.96 0.77 0.72 1.0</ambient>
-        <diffuse>0.96 0.77 0.72 1.0</diffuse>
-        <specular>0.15 0.15 0.15 1.0</specular>
-      </material>
-    </gazebo>
-  </xacro:macro>
-
-  <!-- Fore Quarters (42% volume, forward abdominal slope) -->
-  <xacro:quarter_lobe name="quarter_fl" x="-0.070" y="0.075" z="-0.05" radius="0.105" mass="2.2"/>
-  <xacro:quarter_lobe name="quarter_fr" x="-0.070" y="-0.075" z="-0.05" radius="0.105" mass="2.2"/>
-
-  <!-- Rear Quarters (58% volume, fuller posterior lobes) -->
-  <xacro:quarter_lobe name="quarter_rl" x="0.065"  y="0.055" z="-0.04" radius="0.115" mass="2.8"/>
-  <xacro:quarter_lobe name="quarter_rr" x="0.065"  y="-0.055" z="-0.04" radius="0.115" mass="2.8"/>
-
-  <!-- ======================================================== -->
-  <!-- 7. ANATOMICAL TEATS WITH SPHINCTER TIP ORIFICES           -->
-  <!-- ======================================================== -->
-  <xacro:macro name="anatomical_teat" params="prefix parent x y z roll length radius">
-    <link name="${prefix}_link">
-      <!-- 1. Gland Cistern Base Taper -->
-      <visual>
-        <origin xyz="0 0 -0.007" rpy="0 0 0"/>
-        <geometry>
-          <cylinder radius="${radius * 1.30}" length="0.014"/>
-        </geometry>
-        <material name="udder_skin"/>
-      </visual>
-      <collision>
-        <origin xyz="0 0 -0.007" rpy="0 0 0"/>
-        <geometry>
-          <cylinder radius="${radius * 1.30}" length="0.014"/>
-        </geometry>
-      </collision>
-
-      <!-- 2. Main Teat Barrel -->
-      <visual>
-        <origin xyz="0 0 -${length / 2}" rpy="0 0 0"/>
-        <geometry>
-          <cylinder radius="${radius}" length="${length}"/>
-        </geometry>
-        <material name="teat_skin"/>
-      </visual>
-      <collision>
-        <origin xyz="0 0 -${length / 2}" rpy="0 0 0"/>
-        <geometry>
-          <cylinder radius="${radius}" length="${length}"/>
-        </geometry>
-      </collision>
-
-      <!-- 3. Anatomical Rounded Distal Tip Cap (Hemisphere Dome) -->
-      <visual>
-        <origin xyz="0 0 -${length}" rpy="0 0 0"/>
-        <geometry>
-          <sphere radius="${radius}"/>
-        </geometry>
-        <material name="teat_skin"/>
-      </visual>
-      <collision>
-        <origin xyz="0 0 -${length}" rpy="0 0 0"/>
-        <geometry>
-          <sphere radius="${radius}"/>
-        </geometry>
-      </collision>
-
-      <!-- 4. Distal Streak Canal / Orifice (Marking the EXACT tip apex) -->
-      <visual>
-        <origin xyz="0 0 -${length + radius * 0.96}" rpy="0 0 0"/>
-        <geometry>
-          <cylinder radius="${radius * 0.35}" length="0.002"/>
-        </geometry>
-        <material name="streak_canal_dark"/>
-      </visual>
-
-      <inertial>
-        <mass value="0.04"/>
-        <origin xyz="0 0 -${length / 2}"/>
-        <inertia ixx="1e-4" ixy="0" ixz="0" iyy="1e-4" iyz="0" izz="1e-4"/>
-      </inertial>
-    </link>
-
-    <joint name="${prefix}_joint" type="fixed">
-      <parent link="${parent}"/>
-      <child link="${prefix}_link"/>
-      <origin xyz="${x} ${y} ${z}" rpy="0 0 ${roll}"/>
-    </joint>
-
-    <gazebo reference="${prefix}_link">
-      <material>
-        <ambient>0.90 0.54 0.58 1.0</ambient>
-        <diffuse>0.90 0.54 0.58 1.0</diffuse>
-        <specular>0.2 0.2 0.2 1.0</specular>
-      </material>
-    </gazebo>
-  </xacro:macro>
-
-  <!-- Fore Teats: length=5.5cm, radius=1.2cm (wider 15cm inter-teat placement) -->
-  <xacro:anatomical_teat prefix="teat_fl" parent="quarter_fl" x="0.0" y="0.0" z="-0.095" roll="0.08" length="0.055" radius="0.012"/>
-  <xacro:anatomical_teat prefix="teat_fr" parent="quarter_fr" x="0.0" y="0.0" z="-0.095" roll="-0.08" length="0.055" radius="0.012"/>
-
-  <!-- Rear Teats: length=4.8cm, radius=1.1cm (narrower 11cm placement) -->
-  <xacro:anatomical_teat prefix="teat_rl" parent="quarter_rl" x="0.0" y="0.0" z="-0.105" roll="-0.04" length="0.048" radius="0.011"/>
-  <xacro:anatomical_teat prefix="teat_rr" parent="quarter_rr" x="0.0" y="0.0" z="-0.105" roll="0.04" length="0.048" radius="0.011"/>
-
-  <!-- ======================================================== -->
-  <!-- 8. GAZEBO HARMONIC SENSOR & SENSORS SYSTEM PLUGIN        -->
+  <!-- 8. GAZEBO HARMONIC SENSOR SYSTEM & PBR MATERIALS         -->
   <!-- ======================================================== -->
   <gazebo reference="camera_mount">
     <material>
-      <ambient>0.35 0.35 0.40 1.0</ambient>
-      <diffuse>0.35 0.35 0.40 1.0</diffuse>
-      <specular>0.6 0.6 0.6 1.0</specular>
+      <ambient>0.30 0.32 0.36 1.0</ambient>
+      <diffuse>0.30 0.32 0.36 1.0</diffuse>
+      <specular>0.5 0.5 0.5 1.0</specular>
     </material>
   </gazebo>
 
   <gazebo reference="camera_link">
     <material>
-      <ambient>0.20 0.20 0.20 1.0</ambient>
-      <diffuse>0.20 0.20 0.20 1.0</diffuse>
+      <ambient>0.18 0.18 0.18 1.0</ambient>
+      <diffuse>0.18 0.18 0.18 1.0</diffuse>
       <specular>0.4 0.4 0.4 1.0</specular>
     </material>
     <sensor name="rgbd_camera" type="rgbd_camera">
@@ -386,31 +603,79 @@
     </sensor>
   </gazebo>
 
-  <gazebo reference="cow_body_link">
+  <gazebo reference="model_cow_copy_1___assembly_4__1___configuration_default">
     <material>
-      <ambient>0.08 0.08 0.08 1.0</ambient>
-      <diffuse>0.08 0.08 0.08 1.0</diffuse>
+      <ambient>0.96 0.94 0.92 1.0</ambient>
+      <diffuse>0.96 0.94 0.92 1.0</diffuse>
+      <specular>0.2 0.2 0.2 1.0</specular>
     </material>
   </gazebo>
-  <gazebo reference="left_hind_leg">
-    <material>
-      <ambient>0.95 0.95 0.95 1.0</ambient>
-      <diffuse>0.95 0.95 0.95 1.0</diffuse>
-    </material>
-  </gazebo>
-  <gazebo reference="right_hind_leg">
-    <material>
-      <ambient>0.95 0.95 0.95 1.0</ambient>
-      <diffuse>0.95 0.95 0.95 1.0</diffuse>
-    </material>
-  </gazebo>
+
   <gazebo reference="udder_base_link">
     <material>
       <ambient>0.96 0.77 0.72 1.0</ambient>
       <diffuse>0.96 0.77 0.72 1.0</diffuse>
+      <specular>0.15 0.15 0.15 1.0</specular>
     </material>
   </gazebo>
 
+  <gazebo reference="part_2">
+    <material>
+      <ambient>0.22 0.48 0.75 1.0</ambient>
+      <diffuse>0.22 0.48 0.75 1.0</diffuse>
+      <specular>0.6 0.6 0.6 1.0</specular>
+    </material>
+  </gazebo>
+
+  <gazebo reference="part_3">
+    <material>
+      <ambient>0.30 0.58 0.85 1.0</ambient>
+      <diffuse>0.30 0.58 0.85 1.0</diffuse>
+      <specular>0.6 0.6 0.6 1.0</specular>
+    </material>
+  </gazebo>
+
+  <gazebo reference="part_4__3">
+    <material>
+      <ambient>0.30 0.58 0.85 1.0</ambient>
+      <diffuse>0.30 0.58 0.85 1.0</diffuse>
+      <specular>0.6 0.6 0.6 1.0</specular>
+    </material>
+  </gazebo>
+
+  <gazebo reference="part_4">
+    <material>
+      <ambient>0.65 0.67 0.70 1.0</ambient>
+      <diffuse>0.65 0.67 0.70 1.0</diffuse>
+      <specular>0.8 0.8 0.8 1.0</specular>
+    </material>
+  </gazebo>
+
+  <gazebo reference="part_4__2">
+    <material>
+      <ambient>0.30 0.32 0.36 1.0</ambient>
+      <diffuse>0.30 0.32 0.36 1.0</diffuse>
+      <specular>0.6 0.6 0.6 1.0</specular>
+    </material>
+  </gazebo>
+
+  <gazebo reference="part_5">
+    <material>
+      <ambient>0.65 0.67 0.70 1.0</ambient>
+      <diffuse>0.65 0.67 0.70 1.0</diffuse>
+      <specular>0.8 0.8 0.8 1.0</specular>
+    </material>
+  </gazebo>
+
+  <gazebo reference="part_2_3">
+    <material>
+      <ambient>0.20 0.22 0.25 1.0</ambient>
+      <diffuse>0.20 0.22 0.25 1.0</diffuse>
+      <specular>0.5 0.5 0.5 1.0</specular>
+    </material>
+  </gazebo>
+
+  <!-- Gazebo Sensors System Plugin (OGRE 2 Engine) -->
   <gazebo>
     <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
       <render_engine>ogre2</render_engine>

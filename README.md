@@ -11,10 +11,11 @@
 
 ## Overview
 
-**MilkyWay** is a complete, real-time computer vision simulation pipeline for automated dairy cow milking systems. Built with **ROS 2 Jazzy Jalisco** and **Gazebo Harmonic (Gz Sim 8)**, it features:
-- **Anatomically Accurate 4-Quarter Dairy Cow Udder**: Modeled according to Holstein-Friesian veterinary standards with independent fore/rear glandular quarters, central Median Suspensory cleft, and tapered teats with streak canal orifices.
+**MilkyWay** is a complete, real-time computer vision and robotic milking simulation pipeline for automated dairy farming systems. Built with **ROS 2 Jazzy Jalisco** and **Gazebo Harmonic (Gz Sim 8)**, it features:
+- **Full CAD Cow & Robotic Milker Arm Integration**: High-fidelity 3D Holstein cow mesh combined with a multi-DOF robotic milking arm carrying an industrial 4-cup milker cluster.
+- **Anatomically Accurate 4-Quarter Dairy Cow Udder**: Modeled according to Holstein-Friesian veterinary standards with smooth abdominal suspension blend, independent fore/rear glandular quarters, central Median Suspensory cleft, and tapered teats with streak canal orifices.
 - **Intel RealSense D435 RGB-D Simulation**: Native Gazebo Harmonic `rgbd_camera` generating realistic high-density point clouds bridged into ROS 2 via `ros_gz_bridge`.
-- **6-DOF Pose & Approach Vector Estimation (PCA)**: Perception node using Principal Component Analysis on 3D point clusters to calculate the exact distal tip apex and the 3D cylinder insertion vector (quaternion) for robotic cup attachment.
+- **6-DOF Pose & Approach Vector Estimation (PCA)**: Perception node using Principal Component Analysis on 3D point clusters to calculate the exact distal tip apex (<3mm) and the 3D cylinder insertion vector (quaternion) for robotic cup attachment.
 - **Interactive 3D Visualizations**: RViz 2 markers showing live point clouds, teat tip spheres, 3D approach vector arrows, and real-time tilt angle tags.
 
 ---
@@ -162,6 +163,7 @@ milkyway/
 ├── .gitignore
 ├── README.md
 └── src/
+    ├── milker_sim/                     # Milking system packages
     └── milker_vision/
         ├── CMakeLists.txt
         ├── package.xml
@@ -172,7 +174,9 @@ milkyway/
         ├── scripts/
         │   └── teat_detector.py        # 6-DOF PCA perception node
         └── urdf/
-            └── vision_rig.xacro        # Realistic 4-quarter udder & sensor rig
+            ├── assets/                 # CAD meshes (.stl) for cow & robot arm
+            ├── robot.urdf              # Standalone compiled URDF model
+            └── vision_rig.xacro        # Master merged parametric XACRO model
 ```
 
 ---
