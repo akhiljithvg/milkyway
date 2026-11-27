@@ -1,4 +1,4 @@
-# MilkyWay 🐄🥛
+# MilkyWay 🐄
 
 **Two-Phase Autonomous Vision & Robotic Milking Simulation (ROS 2 Jazzy + Gazebo Harmonic)**
 
